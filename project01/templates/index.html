@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fc">
+    <title>StudySpace | Student Task Manager</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="page-shell">
+        <header class="topbar">
+            <a class="brand" href="{{ url_for('home') }}" aria-label="StudySpace home">
+                <span class="brand-mark" aria-hidden="true">S</span>
+                <span>study<span class="brand-light">space</span></span>
+            </a>
+            <span class="topbar-note">Your study day, made simpler</span>
+        </header>
+
+        <section class="welcome">
+            <div>
+                <p class="eyebrow">YOUR PERSONAL STUDY PLANNER</p>
+                <h1>Make room for <span>great things.</span></h1>
+                <p class="welcome-copy">Keep your coursework in order and make every study session count.</p>
+            </div>
+            <div class="welcome-art" aria-hidden="true">
+                <span class="art-sun"></span>
+                <span class="art-book">✦</span>
+                <span class="art-dot art-dot-one"></span>
+                <span class="art-dot art-dot-two"></span>
+            </div>
+        </section>
+
+        <section class="stats-grid" aria-label="Task overview">
+            <article class="stat-card stat-total">
+                <div class="stat-icon" aria-hidden="true">◎</div>
+                <div>
+                    <p class="stat-label">All tasks</p>
+                    <p class="stat-value">{{ total }}</p>
+                </div>
+                <span class="stat-caption">in your planner</span>
+            </article>
+            <article class="stat-card stat-pending">
+                <div class="stat-icon" aria-hidden="true">◷</div>
+                <div>
+                    <p class="stat-label">To do</p>
+                    <p class="stat-value">{{ pending }}</p>
+                </div>
+                <span class="stat-caption">ready when you are</span>
+            </article>
+            <article class="stat-card stat-completed">
+                <div class="stat-icon" aria-hidden="true">✓</div>
+                <div>
+                    <p class="stat-label">Completed</p>
+                    <p class="stat-value">{{ completed }}</p>
+                </div>
+                <span class="stat-caption">look at you go</span>
+            </article>
+        </section>
+
+        <div class="content-grid">
+            <section class="panel add-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">PLAN AHEAD</p>
+                        <h2>Add a task</h2>
+                    </div>
+                    <span class="heading-sparkle" aria-hidden="true">✦</span>
+                </div>
+                <p class="panel-intro">A little structure goes a long way.</p>
+
+                <form action="{{ url_for('add_task') }}" method="post" class="task-form">
+                    <label for="title">Task name</label>
+                    <input id="title" type="text" name="title" placeholder="e.g. Review chapter 4" required>
+
+                    <label for="subject">Subject</label>
+                    <input id="subject" type="text" name="subject" placeholder="e.g. Biology" required>
+
+                    <div class="form-row">
+                        <div>
+                            <label for="due_date">Due date</label>
+                            <input id="due_date" type="date" name="due_date" required>
+                        </div>
+                        <div>
+                            <label for="priority">Priority</label>
+                            <select id="priority" name="priority">
+                                <option value="High">High</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="add-button" type="submit">
+                        <span aria-hidden="true">+</span> Add to my tasks
+                    </button>
+                </form>
+            </section>
+
+            <section class="panel tasks-panel">
+                <div class="tasks-heading">
+                    <div>
+                        <p class="eyebrow">ONE STEP AT A TIME</p>
+                        <h2>My tasks <span class="task-count">{{ total }}</span></h2>
+                    </div>
+                    <div class="search-wrap">
+                        <span aria-hidden="true">⌕</span>
+                        <input type="search" id="search" placeholder="Find a task..." aria-label="Search tasks">
+                    </div>
+                </div>
+
+                <div class="task-list" id="task-list">
+                    {% for task in tasks %}
+                    <article class="task-card {% if task.status == 'Completed' %}is-complete{% endif %}">
+                        <div class="task-check" aria-hidden="true">
+                            {% if task.status == 'Completed' %}✓{% else %}{{ loop.index }}{% endif %}
+                        </div>
+                        <div class="task-main">
+                            <div class="task-title-row">
+                                <h3>{{ task.title }}</h3>
+                                <span class="priority priority-{{ task.priority|lower }}">{{ task.priority }}</span>
+                            </div>
+                            <p class="task-meta">
+                                <span>{{ task.subject }}</span>
+                                <span class="meta-separator">·</span>
+                                <span>Due {{ task.due_date }}</span>
+                            </p>
+                        </div>
+                        <div class="task-actions">
+                            {% if task.status == 'Pending' %}
+                            <a class="action-complete" href="{{ url_for('complete_task', task_id=task.id) }}">Mark done</a>
+                            {% else %}
+                            <span class="done-label">Done</span>
+                            {% endif %}
+                            <a class="action-delete" href="{{ url_for('delete_task', task_id=task.id) }}"
+                               aria-label="Delete {{ task.title }}"
+                               onclick="return confirm('Delete this task?')">×</a>
+                        </div>
+                    </article>
+                    {% else %}
+                    <div class="empty-state">
+                        <span class="empty-icon" aria-hidden="true">✎</span>
+                        <h3>Your next big thing starts here.</h3>
+                        <p>Add a task and it will show up in your planner.</p>
+                    </div>
+                    {% endfor %}
+                    <p class="no-results" id="no-results" hidden>No matching tasks. Try another search.</p>
+                </div>
+            </section>
+        </div>
+
+        <footer>Small steps add up. You’ve got this <span aria-hidden="true">✦</span></footer>
+    </main>
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</body>
+</html>
